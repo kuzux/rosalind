@@ -1,0 +1,2 @@
+-- this is trivially solvable 
+-- number of nodes - number of edges - 1 is the answer
