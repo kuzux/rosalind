@@ -1,5 +1,5 @@
 import Control.Applicative
-import Data.Array (Array, (!), array, range, bounds, assocs)
+import Data.Array (Array, (!), array, range, bounds, assocs, elems)
 import Data.List
 import Data.Functor
 import Data.Map (Map)
@@ -63,7 +63,7 @@ scsTable xs ys = table
         where l = tableVal (i, j-1) - 5
               u = tableVal (i-1, j) - 5
               d = tableVal (i-1, j-1) + score (i,j)
-              maxVal = maximum [u,l,d, 0]
+              maxVal = maximum [u,l,d,0]
 
 modifications :: (Int,Int) -> Array (Int,Int) (Int, Change) -> [Change]
 modifications end table = go end
@@ -75,13 +75,16 @@ modifications end table = go end
                                         Remove -> go (i-1,j) ++ [Remove]
                                         Modify -> go (i-1,j-1) ++ [Modify]
 
-buildStrings :: String -> String -> [Change] -> (String, String)
-buildStrings x y cs = fst3 $ foldl' go (("",""), x, y) cs
-    where go ((xAcc, yAcc), xs, ys) c = case c of
-              Modify -> ((xAcc ++ [head xs], yAcc ++ [head ys]), tail xs, tail ys)
-              Add    -> ((xAcc, yAcc ++ [head ys]), xs, tail ys)
-              Remove -> ((xAcc ++ [head xs], yAcc), tail xs, ys)
-          fst3 (a,_,_) = a
+buildStrings :: String -> String -> (Int,Int) -> [Change] -> (String, String)
+buildStrings xs ys (ei,ej) cs = fst3 $ foldl' go (("",""), ei, ej) cs
+    where fst3 (a,_,_) = a
+          (m,n) = (length xs, length ys)
+          x     = array (1,m) $ zip [1..] xs
+          y     = array (1,n) $ zip [1..] ys
+          go ((xAcc, yAcc), i, j) c = case c of
+                Modify -> (((x!i):xAcc,(y!j):yAcc), i-1,j-1)
+                Add    -> ((xAcc, (y!j):yAcc), i, j-1)
+                Remove -> (((x!i):xAcc, yAcc), i-1, j)
 
 maximumScore :: Array (Int, Int) (Int, Change) -> ((Int,Int), Int)
 maximumScore table = (maxIdx, fst $ table ! maxIdx)
@@ -92,8 +95,8 @@ main = do (xs:ys:_) <- parseAsStrings <$> getContents
           let tab = scsTable xs ys
           let (end, score) = maximumScore tab
           print score
-          --print tab
-          let (x', y') = buildStrings xs ys . modifications end $ tab 
+          --print . elems $ tab
+          let (x', y') = buildStrings xs ys end . reverse . modifications end $ tab 
           putStrLn x'
           putStrLn y'
 
