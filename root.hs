@@ -1,11 +1,6 @@
-import Data.Array (Array, (!), array)
+numUnrootedTrees :: Integer -> Integer
+numUnrootedTrees n = (fact $ 2*n-4) `div` ((fact $ n-2)*2^(n-2))
+    where fact n = product [1..n]
 
-numTrees :: Int -> Integer
-numTrees n = dyn ! n
-    where dyn :: Array Int Integer
-          dyn = array (1, n) [(i, go i) | i <- [1..n]]
-
-          go :: Int -> Integer
-          go 1 = 1
-          go n = sum [ (dyn ! i)*(dyn ! (n-i)) | i <- [1..n-1] ]
-
+numRootedTrees :: Integer -> Integer
+numRootedTrees n = (2*n-3) * numUnrootedTrees n
